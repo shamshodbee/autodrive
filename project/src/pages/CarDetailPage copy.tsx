@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { useCars } from '../context/CarsContext';
+import { useAuth } from '../context/AuthContext';
 import { useRouter, Link } from '../router';
 import { formatPrice, formatMileage, CAR_CONDITION_LABELS } from '../lib/types';
 import {
   ChevronLeft, ChevronRight, Phone, Send, Instagram,
-  Gauge, Calendar, Palette, ShieldCheck, Car as CarIcon, User, ArrowLeft,
+  Gauge, Calendar, Palette, ShieldCheck, Car as CarIcon, User, ArrowLeft, Trash2,
 } from 'lucide-react';
 
 export default function CarDetailPage() {
   const { route, navigate } = useRouter();
-  const { getById, loading } = useCars();
+  const { getById, loading, deleteCar } = useCars();
+  const { user } = useAuth();
   const [activeImg, setActiveImg] = useState(0);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const id = route.params.id;
   const car = getById(id);
@@ -56,12 +60,47 @@ export default function CarDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <button
-        onClick={() => navigate('/')}
-        className="flex items-center gap-2 text-sm text-cool-400 hover:text-amber-500 transition-colors mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" /> Bozorga qaytish
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-sm text-cool-400 hover:text-amber-500 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Bozorga qaytish
+        </button>
+
+        {user && car.user_id === user.id && (
+          confirming ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-cool-300">Rostdan ham o'chirilsinmi?</span>
+              <button
+                disabled={deleting}
+                onClick={async () => {
+                  setDeleting(true);
+                  const ok = await deleteCar(car.id);
+                  setDeleting(false);
+                  if (ok) navigate('/');
+                }}
+                className="px-3 py-1.5 rounded-lg text-sm bg-red-500/90 hover:bg-red-500 text-white transition-colors disabled:opacity-60"
+              >
+                {deleting ? 'O\'chirilmoqda...' : 'Ha, o\'chir'}
+              </button>
+              <button
+                onClick={() => setConfirming(false)}
+                className="px-3 py-1.5 rounded-lg text-sm btn-ghost"
+              >
+                Bekor qilish
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirming(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" /> E'lonni o'chirish
+            </button>
+          )
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Gallery */}

@@ -8,6 +8,7 @@ interface CarsState {
   error: string | null;
   refresh: () => Promise<void>;
   addCar: (input: CarInput) => Promise<Car | null>;
+  deleteCar: (id: string) => Promise<boolean>;
   getById: (id: string) => Car | undefined;
 }
 
@@ -38,10 +39,17 @@ export function CarsProvider({ children }: { children: ReactNode }) {
     return data as Car;
   };
 
+  const deleteCar = async (id: string): Promise<boolean> => {
+    const { error: err } = await supabase.from('cars').delete().eq('id', id);
+    if (err) { setError(err.message); return false; }
+    setCars((prev) => prev.filter((c) => c.id !== id));
+    return true;
+  };
+
   const getById = (id: string) => cars.find((c) => c.id === id);
 
   return (
-    <CarsContext.Provider value={{ cars, loading, error, refresh, addCar, getById }}>
+    <CarsContext.Provider value={{ cars, loading, error, refresh, addCar, deleteCar, getById }}>
       {children}
     </CarsContext.Provider>
   );
