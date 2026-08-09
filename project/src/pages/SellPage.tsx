@@ -58,6 +58,7 @@ export default function SellPage() {
     setSubmitting(true);
     setError(null);
     const input: CarInput = {
+      user_id: user.id,
       brand: form.brand, model: form.model, year: Number(form.year),
       mileage_km: Number(form.mileage_km), condition: form.condition,
       color: form.color, price: Number(form.price),
